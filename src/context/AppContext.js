@@ -1,41 +1,42 @@
-import React from "react";
 import { createContext, useState } from "react";
 import { baseUrl } from "../baseUrl";
 
-// Step - 1
 export const AppContext = createContext();
 
 export default function AppContextProvider({ children }) {
-  const [loading, setLoading] = useState(false);
   const [posts, setPosts] = useState([]);
+  const [loading, setLoading] = useState(false);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(null);
 
-  // data filling pending
-
-  async function fetchBlogPosts(page = 1) {
+  // Fetch Blog Data
+  const fetchBlogPosts = async (page = 1) => {
     setLoading(true);
     let url = `${baseUrl}?page=${page}`;
     try {
-      const result = await fetch(url);
-      const data = await result.json();
-      console.log(data);
+      const res = await fetch(url);
+      const data = await res.json();
+      if (!data.posts || data.posts.length === 0)
+        throw new Error("Something Went Wrong");
+      console.log("Api Response", data);
       setPage(data.page);
       setPosts(data.posts);
       setTotalPages(data.totalPages);
     } catch (error) {
-      console.log("Error in fetching data");
+      console.log("Error in Fetching BlogPosts", error);
       setPage(1);
       setPosts([]);
       setTotalPages(null);
     }
     setLoading(false);
-  }
+  };
 
-  function handlePageChange(page) {
+  // Handle When Next and Previous button are clicked
+  const handlePageChange = (page) => {
     setPage(page);
+    console.log(page);
     fetchBlogPosts(page);
-  }
+  };
 
   const value = {
     posts,
@@ -50,6 +51,5 @@ export default function AppContextProvider({ children }) {
     handlePageChange,
   };
 
-  // Step-2
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
 }
